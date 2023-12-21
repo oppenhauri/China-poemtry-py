@@ -1,0 +1,33 @@
+from jiayan import load_lm
+from jiayan import CharHMMTokenizer
+from jiayan import PMIEntropyLexiconConstructor
+import json
+import zhconv
+# 测试分词模型
+# text = '君不见，黄河之水天上来，奔流到海不复回。'
+
+# 导入模型
+lm = load_lm('jiayan.klm')
+tokenizer = CharHMMTokenizer(lm)
+# print(list(tokenizer.tokenize(text)))
+
+paket = []
+with open(r'poet.song.0.json', 'r', encoding='utf-8') as f:
+    z = json.loads(f.read())
+for i in range(len(z)):
+    author_poet = z[i]['paragraphs']
+    # 生成作者词典
+    y = dict(zip(['author'], [zhconv.convert(z[i]['author'], 'zh-hans')]))
+    for j in range(len(author_poet)):
+        # 繁体转简体
+        author_poet[j] = zhconv.convert(z[i]['paragraphs'][j], 'zh-hans')
+        # 分词
+        fenci = list(tokenizer.tokenize(author_poet[j]))
+        # 合成作者与诗词的字典
+        if 'paragraphs' not in y.keys():
+            y.setdefault('paragraphs', fenci)
+        else:
+            y.update({'paragraphs': fenci})
+        #将字典打包
+        paket.append(y)
+print(paket)
